@@ -1,0 +1,6 @@
+{
+  "name": "SecurePhone Admin",
+  "description": "High-stakes security and remote device management command center. Provides real-time threat telemetry, device controls, and smart security audits.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
