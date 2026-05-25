@@ -21,6 +21,9 @@ import com.securphone.app.ui.update.ForceUpdateActivity
 import com.securphone.app.utils.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -29,6 +32,8 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private var policyPollJob: Job? = null
+    private var lastPolicyCheck = 0L
 
     override fun onStart() {
         super.onStart()
@@ -46,11 +51,9 @@ class MainActivity : AppCompatActivity() {
         checkPolicyConfig()
     }
 
-    private var lastPolicyCheck = 0L
-
     private fun checkPolicyConfig() {
         val now = System.currentTimeMillis()
-        if (now - lastPolicyCheck < 30000) return
+        if (now - lastPolicyCheck < 5000) return
         lastPolicyCheck = now
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -134,6 +137,18 @@ class MainActivity : AppCompatActivity() {
         binding.ivNotifications.setOnClickListener {
             showNotificationDialog()
         }
+
+        policyPollJob = CoroutineScope(Dispatchers.IO).launch {
+            while (isActive) {
+                checkPolicyConfig()
+                delay(30000)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        policyPollJob?.cancel()
+        super.onDestroy()
     }
 
     private fun showGlobalAnnouncementIfNeeded() {
