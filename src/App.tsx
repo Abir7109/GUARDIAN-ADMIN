@@ -26,6 +26,7 @@ import SecurityAuditsView from "./components/SecurityAuditsView.js";
 import TestView from "./components/TestView.js";
 import VaultView from "./components/VaultView.js";
 import LoginView from "./components/LoginView.js";
+import AlarmPanel from "./components/AlarmPanel.js";
 
 import { Shield, Sparkles, AlertCircle, AlertTriangle } from "lucide-react";
 
@@ -47,6 +48,7 @@ export default function App() {
   const [showAuditDrawer, setShowAuditDrawer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dangerUsers, setDangerUsers] = useState<SecurityUser[]>([]);
+  const [alarmDetailUser, setAlarmDetailUser] = useState<SecurityUser | null>(null);
 
   // Expanded detailed inspection sidebar details
   const [inspectedLog, setInspectedLog] = useState<EventLog | null>(null);
@@ -326,18 +328,26 @@ export default function App() {
         
         {/* Danger Banner — active alarm notification */}
         {dangerUsers.length > 0 && (
-          <button
-            onClick={() => setCurrentTab("users")}
-            className="z-50 shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-[#93000a] border-b-2 border-[#ff5e62] text-white font-mono text-xs font-bold uppercase tracking-wider animate-pulse cursor-pointer hover:bg-[#b00014] transition-all"
-          >
+          <div className="z-50 shrink-0 flex items-center justify-center gap-3 px-4 py-2 bg-[#93000a] border-b-2 border-[#ff5e62] text-white font-mono text-xs font-bold uppercase tracking-wider animate-pulse">
             <AlertTriangle className="w-4 h-4 text-[#ffea2a]" />
             <span>
               {dangerUsers.length === 1
                 ? `${dangerUsers[0].name} device is in danger — alarm playing!`
                 : `${dangerUsers.length} devices in danger — alarms active!`}
             </span>
-            <span className="ml-1 underline">Click to view</span>
-          </button>
+            <button
+              onClick={() => setAlarmDetailUser(dangerUsers[0])}
+              className="ml-2 px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/30 rounded text-[10px] font-bold cursor-pointer transition-all"
+            >
+              View Details
+            </button>
+            <button
+              onClick={() => setCurrentTab("users")}
+              className="underline ml-1 cursor-pointer hover:text-[#ffea2a] transition-colors"
+            >
+              Go to Users
+            </button>
+          </div>
         )}
 
         {/* Responsive Layout Header */}
@@ -450,6 +460,19 @@ export default function App() {
         <SecurityAuditsView
           onClose={() => setShowAuditDrawer(false)}
           onRunAudit={handleRunAudit}
+        />
+      )}
+
+      {/* Alarm Detail Panel — full-screen overlay */}
+      {alarmDetailUser && (
+        <AlarmPanel
+          user={alarmDetailUser}
+          onStopAlarm={handleStopAlarm}
+          onNavigateToUsers={() => {
+            setAlarmDetailUser(null);
+            setCurrentTab("users");
+          }}
+          onClose={() => setAlarmDetailUser(null)}
         />
       )}
 
