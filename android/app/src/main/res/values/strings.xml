@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Guardian — Anti-Theft</string>
+    <string name="app_name">Guardian</string>
     <string name="brand_name">GUARDIAN</string>
     <string name="secure_identity_access">Secure Identity Access</string>
     
