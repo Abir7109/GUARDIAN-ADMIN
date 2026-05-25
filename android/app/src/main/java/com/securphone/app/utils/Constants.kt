@@ -26,6 +26,7 @@ object Constants {
     const val KEY_MAINTENANCE_MESSAGE = "maintenance_message"
     const val KEY_GLOBAL_ANNOUNCEMENT = "global_announcement"
     const val KEY_ANNOUNCEMENT_SEVERITY = "announcement_severity"
+    const val KEY_LAST_SHOWN_ANNOUNCEMENT = "last_shown_announcement"
     const val KEY_FORCE_UPDATE = "force_update_enabled"
     const val KEY_MIN_REQUIRED_VERSION = "min_required_version"
     const val KEY_UPDATE_MESSAGE = "update_message_pref"

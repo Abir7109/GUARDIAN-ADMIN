@@ -131,6 +131,14 @@ object PreferencesManager {
         getPrefs(context).edit().putString(Constants.KEY_ANNOUNCEMENT_SEVERITY, severity).apply()
     }
 
+    fun getLastShownAnnouncement(context: Context): String {
+        return getPrefs(context).getString(Constants.KEY_LAST_SHOWN_ANNOUNCEMENT, "") ?: ""
+    }
+
+    fun setLastShownAnnouncement(context: Context, announcement: String) {
+        getPrefs(context).edit().putString(Constants.KEY_LAST_SHOWN_ANNOUNCEMENT, announcement).apply()
+    }
+
     fun isForceUpdateEnabled(context: Context): Boolean {
         return getPrefs(context).getBoolean(Constants.KEY_FORCE_UPDATE, false)
     }

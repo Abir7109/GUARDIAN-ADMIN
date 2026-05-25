@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity() {
                 launch(Dispatchers.Main) { ctx.startActivity(i); ctx.finish() }
                 return@launch
             }
+            launch(Dispatchers.Main) { showGlobalAnnouncementIfNeeded() }
             val enabled = PreferencesManager.isForceUpdateEnabled(ctx)
             val minVersion = if (enabled) {
                 PreferencesManager.getMinRequiredVersion(ctx)
@@ -91,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 launch(Dispatchers.Main) { ctx.startActivity(i); ctx.finish() }
             }
-            launch(Dispatchers.Main) { showGlobalAnnouncementIfNeeded() }
         }
     }
 
@@ -165,13 +165,14 @@ class MainActivity : AppCompatActivity() {
     private fun showGlobalAnnouncementIfNeeded() {
         val announcement = PreferencesManager.getGlobalAnnouncement(this)
         if (announcement.isBlank()) return
+        if (announcement == PreferencesManager.getLastShownAnnouncement(this)) return
+        PreferencesManager.setLastShownAnnouncement(this, announcement)
         val severity = PreferencesManager.getAnnouncementSeverity(this)
         val title = when (severity) {
             "warning" -> "Warning"
             "critical" -> "Critical Alert"
             else -> "Announcement"
         }
-        PreferencesManager.setGlobalAnnouncement(this, "")
         AlertDialog.Builder(this, R.style.AlertDialogCustom)
             .setTitle(title)
             .setMessage(announcement)
