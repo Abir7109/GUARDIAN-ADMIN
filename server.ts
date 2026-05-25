@@ -151,7 +151,8 @@ async function sendFcmToUser(userId: string, data: Record<string, string>): Prom
     await messaging.send({ token, data, android: { priority: "high" } });
     return true;
   } catch (err: any) {
-    if (err?.errorInfo?.code === "messaging/registration-token-not-registered") {
+    const errCode = err?.errorInfo?.code || err?.code || "";
+    if (errCode === "messaging/registration-token-not-registered") {
       await firestore.collection("users").doc(userId).update({
         fcmToken: admin.firestore.FieldValue.delete(),
         isBlocked: true,
@@ -171,7 +172,8 @@ async function sendFcmToToken(userDoc: admin.firestore.DocumentSnapshot, data: R
     await messaging.send({ token, data, android: { priority: "high" } });
     return true;
   } catch (err: any) {
-    if (err?.errorInfo?.code === "messaging/registration-token-not-registered") {
+    const errCode = err?.errorInfo?.code || err?.code || "";
+    if (errCode === "messaging/registration-token-not-registered") {
       await userDoc.ref.update({
         fcmToken: admin.firestore.FieldValue.delete(),
         isBlocked: true,
@@ -305,6 +307,7 @@ app.post("/api/users/toggle-protection", async (req, res) => {
     const doc = await firestore.collection("users").doc(id).get();
     if (!doc.exists) return res.status(404).json({ error: "User not found." });
     if (doc.data()?.uninstalledAt) return res.status(400).json({ error: "User not available — app has been uninstalled." });
+    if (!doc.data()?.fcmToken) return res.status(400).json({ error: "User not available — no device registered." });
 
     const current = doc.data()?.settings?.isProtectionActive ?? doc.data()?.shieldActive ?? false;
     const newState = !current;
@@ -344,6 +347,7 @@ app.post("/api/users/toggle-status", async (req, res) => {
     const doc = await firestore.collection("users").doc(id).get();
     if (!doc.exists) return res.status(404).json({ error: "User not found." });
     if (doc.data()?.uninstalledAt) return res.status(400).json({ error: "User not available — app has been uninstalled." });
+    if (!doc.data()?.fcmToken) return res.status(400).json({ error: "User not available — no device registered." });
 
     const isBlocked = status === "Blocked";
     await firestore.collection("users").doc(id).update({ isBlocked });
