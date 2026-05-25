@@ -327,6 +327,12 @@ export default function AppConfigView({
                   Devices running a version lower than this will be blocked until they update.
                 </span>
               </div>
+              <div className="flex justify-between items-center py-2 border-t border-[#1e1c31]/50 mt-2">
+                <span className="font-sans text-[10px] font-bold text-[#8e8a9f] uppercase tracking-wider">
+                  Current APK Version
+                </span>
+                <span className="font-mono text-xs text-[#00f59b] font-bold">1.0.0</span>
+              </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="font-sans text-[11px] font-bold text-[#8e8a9f] uppercase tracking-wider">
