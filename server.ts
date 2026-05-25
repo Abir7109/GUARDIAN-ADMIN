@@ -669,8 +669,14 @@ app.get("/api/vault/data", async (req, res) => {
     const users = userSnap.docs.map(d => {
       const dd = d.data();
       const ts = dd.lastActive?.toMillis?.() || dd.lastActive || 0;
-      const loc = dd.lastLatitude && dd.lastLongitude
-        ? `${dd.lastLatitude.toFixed(6)}, ${dd.lastLongitude.toFixed(6)}`
+      let lat = dd.lastLatitude;
+      let lng = dd.lastLongitude;
+      if ((lat == null || lng == null) && dd.deviceInfo) {
+        lat = dd.deviceInfo.lastLatitude;
+        lng = dd.deviceInfo.lastLongitude;
+      }
+      const loc = (lat != null && lng != null)
+        ? `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`
         : "N/A";
       return {
         id: d.id,

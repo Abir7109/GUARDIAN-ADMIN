@@ -23,6 +23,7 @@ export default function VaultView() {
   const [loading, setLoading] = useState(false);
   const [revealedRows, setRevealedRows] = useState<Set<string>>(new Set());
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -90,6 +91,15 @@ export default function VaultView() {
       setError("Failed to load vault data");
     }
   };
+
+  useEffect(() => {
+    if (!locked) {
+      pollRef.current = setInterval(fetchData, 15000);
+    }
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [locked]);
 
   const toggleReveal = (id: string) => {
     setRevealedRows(prev => {
