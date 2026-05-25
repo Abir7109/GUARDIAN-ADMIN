@@ -7,16 +7,20 @@ import { useState } from "react";
 import { SecurityUser } from "../types";
 import { Search, Download, Info, X } from "lucide-react";
 
+import { Trash2 } from "lucide-react";
+
 interface UsersViewProps {
   users: SecurityUser[];
   onToggleProtection: (id: string) => void;
   onToggleStatus: (id: string, status: 'Active' | 'Inactive' | 'Blocked') => void;
+  onDeleteUser: (id: string) => void;
 }
 
 export default function UsersView({
   users,
   onToggleProtection,
-  onToggleStatus
+  onToggleStatus,
+  onDeleteUser
 }: UsersViewProps) {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<'All' | 'Active' | 'Inactive' | 'Blocked'>('All');
@@ -249,14 +253,23 @@ export default function UsersView({
                       {user.lastSync}
                     </td>
 
-                    {/* Details drawer link */}
+                    {/* Actions */}
                     <td className="py-4 text-right pr-4">
-                      <button
-                        onClick={() => setSelectedUser(user)}
-                        className="text-[#b9cbb9]/50 hover:text-[#00ff88] transition-all p-1 flex hover:bg-[#2a3441]/50 rounded cursor-pointer justify-center items-center w-8 h-8 ml-auto"
-                      >
-                        <Info className="w-5 h-5" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => { if (confirm("Permanently delete this user?")) onDeleteUser(user.id); }}
+                          className="text-[#b9cbb9]/30 hover:text-[#ff5e62] transition-all p-1 flex hover:bg-[#93000a]/20 rounded cursor-pointer justify-center items-center w-8 h-8"
+                          title="Delete user"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setSelectedUser(user)}
+                          className="text-[#b9cbb9]/50 hover:text-[#00ff88] transition-all p-1 flex hover:bg-[#2a3441]/50 rounded cursor-pointer justify-center items-center w-8 h-8"
+                        >
+                          <Info className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

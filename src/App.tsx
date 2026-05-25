@@ -213,6 +213,25 @@ export default function App() {
     }
   };
 
+  const handleDeleteUser = async (id: string) => {
+    if (!confirm("Permanently delete this user account? This cannot be undone.")) return;
+    try {
+      const response = await fetch("/api/users/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      if (response.ok) {
+        fetchState();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.error || "Failed to delete user.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Quick navigation helpers
   const handleNavigateToTab = (tab: string) => {
     setCurrentTab(tab);
@@ -330,6 +349,7 @@ export default function App() {
               users={users}
               onToggleProtection={handleToggleProtection}
               onToggleStatus={handleToggleStatus}
+              onDeleteUser={handleDeleteUser}
             />
           )}
 

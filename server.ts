@@ -405,6 +405,32 @@ app.post("/api/users/test-trigger", async (req, res) => {
   }
 });
 
+// DELETE /api/users/delete — permanently remove a user account
+app.delete("/api/users/delete", async (req, res) => {
+  const { id } = req.body;
+  if (!isFirebaseReady()) {
+    const idx = memDb.users.findIndex(u => u.id === id);
+    if (idx === -1) return res.status(404).json({ error: "User not found." });
+    memDb.users.splice(idx, 1);
+    return res.json({ success: true });
+  }
+  try {
+    const doc = await firestore.collection("users").doc(id).get();
+    if (!doc.exists) return res.status(404).json({ error: "User not found." });
+    // Delete user doc
+    await firestore.collection("users").doc(id).delete();
+    // Clean up related data
+    const events = await firestore.collection("events").where("userId", "==", id).get();
+    const batch = firestore.batch();
+    events.docs.forEach(e => batch.delete(e.ref));
+    await batch.commit();
+    await addFeedEntry(`User ${id} account permanently deleted`, "key_rotation");
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // POST /api/broadcasts — create and send broadcast
 app.post("/api/broadcasts", async (req, res) => {
   const { title, body, targetAudience, actionUrl } = req.body;
