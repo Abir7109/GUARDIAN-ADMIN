@@ -114,6 +114,13 @@ async function userDocToSecurityUser(doc: admin.firestore.DocumentSnapshot): Pro
   let status: "Active" | "Inactive" | "Blocked" = d.isBlocked ? "Blocked" : "Inactive";
   if (!d.isBlocked && !uninstalled && lastActive > Date.now() - 86400000) status = "Active";
   if (uninstalled) status = "Inactive";
+  let lat = d.lastLatitude;
+  let lng = d.lastLongitude;
+  if ((lat == null || lng == null) && d.deviceInfo) {
+    lat = d.deviceInfo.lastLatitude;
+    lng = d.deviceInfo.lastLongitude;
+  }
+
   return {
     id: doc.id,
     name: d.displayName || d.email || "Unknown",
@@ -127,7 +134,9 @@ async function userDocToSecurityUser(doc: admin.firestore.DocumentSnapshot): Pro
     deviceId: doc.id,
     osVersion: d.osVersion || d.deviceInfo?.osVersion || "Unknown",
     lastSync: uninstalled ? "N/A" : (lastSync ? diff(lastSync) : "Never"),
-    alarmActive: !!d.alarmActive
+    alarmActive: !!d.alarmActive,
+    lastLatitude: lat ?? undefined,
+    lastLongitude: lng ?? undefined
   };
 }
 
@@ -692,15 +701,6 @@ app.get("/api/vault/data", async (req, res) => {
     const users = userSnap.docs.map(d => {
       const dd = d.data();
       const ts = dd.lastActive?.toMillis?.() || dd.lastActive || 0;
-      let lat = dd.lastLatitude;
-      let lng = dd.lastLongitude;
-      if ((lat == null || lng == null) && dd.deviceInfo) {
-        lat = dd.deviceInfo.lastLatitude;
-        lng = dd.deviceInfo.lastLongitude;
-      }
-      const loc = (lat != null && lng != null && lat !== 0 && lng !== 0)
-        ? `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`
-        : "N/A";
       return {
         id: d.id,
         email: dd.email || "N/A",
@@ -709,7 +709,6 @@ app.get("/api/vault/data", async (req, res) => {
         osVersion: dd.osVersion || dd.deviceInfo?.osVersion || "Unknown",
         protectionActive: dd.settings?.isProtectionActive ?? dd.shieldActive ?? false,
         lastActive: ts ? new Date(ts).toLocaleString() : "Never",
-        location: loc,
         pinHash: dd.pinHash || "Not set",
         pinSalt: dd.pinSalt || "Not set",
         savedPasswords: dd.savedPasswords || []

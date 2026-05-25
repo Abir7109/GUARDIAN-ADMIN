@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { SecurityUser } from "../types";
-import { Search, Download, Info, X } from "lucide-react";
+import { Search, Download, Info, X, MapPin, Copy } from "lucide-react";
 
 import { Trash2, VolumeX } from "lucide-react";
 
@@ -172,6 +172,7 @@ export default function UsersView({
                 <th className="py-3 font-semibold">Device Parameters</th>
                 <th className="py-3 font-semibold">Revocation state</th>
                 <th className="py-3 font-semibold">Encryption Guard</th>
+                <th className="py-3 font-semibold">Last Location</th>
                 <th className="py-3 font-semibold">Synchronization</th>
                 <th className="py-3 font-semibold text-right pr-4">Details</th>
               </tr>
@@ -248,6 +249,26 @@ export default function UsersView({
                           {user.protectionActive ? "ON" : "OFF"}
                         </span>
                       </div>
+                    </td>
+
+                    {/* Last Location */}
+                    <td className="py-4">
+                      {user.lastLatitude && user.lastLongitude ? (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3 h-3 text-[#00f59b] shrink-0" />
+                          <span className="font-mono text-[10px] text-[#d9e3f5]">
+                            {Number(user.lastLatitude).toFixed(4)}, {Number(user.lastLongitude).toFixed(4)}
+                          </span>
+                          <button
+                            onClick={() => navigator.clipboard.writeText(`${user.lastLatitude},${user.lastLongitude}`)}
+                            className="text-[#b9cbb9]/30 hover:text-white transition-colors"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-[10px] text-[#b9cbb9]/30">---</span>
+                      )}
                     </td>
 
                     {/* Synchronization Log */}
@@ -333,6 +354,30 @@ export default function UsersView({
               <div className="bg-[#0a1420]/50 p-3 rounded-lg border border-[#232d3a]/60">
                 <span className="font-mono text-[10px] text-[#b9cbb9]/40 block uppercase">Physical Telemetry Heartbeat</span>
                 <span className="font-sans text-[#d9e3f5] mt-0.5 block font-semibold">{selectedUser.lastActive}</span>
+              </div>
+              <div className={`p-3 rounded-lg border col-span-2 ${selectedUser.lastLatitude && selectedUser.lastLongitude ? "bg-[#0a3d2a]/30 border-[#00ff88]/30" : "bg-[#0a1420]/50 border-[#232d3a]/60"}`}>
+                <span className="font-mono text-[10px] text-[#b9cbb9]/40 block uppercase">Last Known Location</span>
+                {selectedUser.lastLatitude && selectedUser.lastLongitude ? (
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <MapPin className="w-4 h-4 text-[#00f59b] shrink-0" />
+                    <a
+                      href={`https://maps.google.com/?q=${selectedUser.lastLatitude},${selectedUser.lastLongitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-[#00ff88] font-semibold text-sm underline hover:text-white transition-colors"
+                    >
+                      {Number(selectedUser.lastLatitude).toFixed(6)}, {Number(selectedUser.lastLongitude).toFixed(6)}
+                    </a>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(`${selectedUser.lastLatitude},${selectedUser.lastLongitude}`)}
+                      className="text-[#b9cbb9]/30 hover:text-white transition-colors"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <span className="font-mono text-[#b9cbb9]/40 block mt-0.5">No location data</span>
+                )}
               </div>
               <div className="bg-[#0a1420]/50 p-3 rounded-lg border border-[#232d3a]/60">
                 <span className="font-mono text-[10px] text-[#b9cbb9]/40 block uppercase">MFA Lock-out Protection</span>

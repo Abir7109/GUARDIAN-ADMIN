@@ -82,6 +82,8 @@ export interface SecurityUser {
   osVersion: string;
   lastSync: string;
   alarmActive?: boolean;
+  lastLatitude?: number;
+  lastLongitude?: number;
 }
 
 export interface LiveFeedItem {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Shield, Lock, Eye, EyeOff, Copy, MapPin, Key, User, Smartphone, HardDrive } from "lucide-react";
+import { Shield, Lock, Eye, EyeOff, Copy, Key, User, Smartphone, HardDrive } from "lucide-react";
 
 interface VaultUser {
   id: string;
@@ -9,7 +9,6 @@ interface VaultUser {
   osVersion: string;
   protectionActive: boolean;
   lastActive: string;
-  location: string;
   pinHash: string;
   pinSalt: string;
   savedPasswords: string[];
@@ -177,15 +176,14 @@ export default function VaultView() {
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-[#1e1c31]">
-              <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">User</th>
-              <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">Device</th>
-              <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">Location</th>
-              <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">PIN Hash / Salt</th>
-              <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">Saved Passwords</th>
-              <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">Last Active</th>
-              <th className="py-3 px-3 w-10" />
-            </tr>
+                <tr className="border-b border-[#1e1c31]">
+                  <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">User</th>
+                  <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">Device</th>
+                  <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">PIN Hash / Salt</th>
+                  <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">Saved Passwords</th>
+                  <th className="py-3 px-3 text-[10px] font-semibold uppercase tracking-wider text-[#8e8a9f]">Last Active</th>
+                  <th className="py-3 px-3 w-10" />
+                </tr>
           </thead>
           <tbody>
             {users.map(u => {
@@ -209,19 +207,6 @@ export default function VaultView() {
                         <p className="text-[10px] text-[#8e8a9f]">{u.osVersion}</p>
                       </div>
                     </div>
-                  </td>
-                  <td className="py-3 px-3">
-                    {u.location !== "N/A" ? (
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#00f59b]" />
-                        <span className="text-xs text-white font-mono">{u.location}</span>
-                        <button onClick={() => copyToClipboard(u.location)} className="text-[#8e8a9f] hover:text-white transition-colors">
-                          <Copy className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-[#8e8a9f]">N/A</span>
-                    )}
                   </td>
                   <td className="py-3 px-3">
                     {revealed ? (
@@ -278,7 +263,7 @@ export default function VaultView() {
             })}
             {users.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-sm text-[#8e8a9f]">No user data available</td>
+                <td colSpan={6} className="py-8 text-center text-sm text-[#8e8a9f]">No user data available</td>
               </tr>
             )}
           </tbody>
