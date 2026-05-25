@@ -24,6 +24,7 @@ import EventLogsView from "./components/EventLogsView.js";
 import SettingsView from "./components/SettingsView.js";
 import SecurityAuditsView from "./components/SecurityAuditsView.js";
 import TestView from "./components/TestView.js";
+import VaultView from "./components/VaultView.js";
 import LoginView from "./components/LoginView.js";
 
 import { Shield, Sparkles, AlertCircle, AlertTriangle } from "lucide-react";
@@ -71,13 +72,19 @@ export default function App() {
 
   useEffect(() => {
     fetchState();
-    
+
+    // Live poll: refresh users, broadcasts, logs, feed every 7s from backend
+    const pollTimer = setInterval(fetchState, 7000);
+
     // Interval ticking system to make dashboard stats feel completely live and interconnected
-    const timer = setInterval(() => {
+    const counterTimer = setInterval(() => {
       setApiRequests((prev) => prev + Math.floor(Math.random() * 5) + 1);
     }, 4500);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(pollTimer);
+      clearInterval(counterTimer);
+    };
   }, []);
 
   // Post wrappers matching backend architecture
@@ -305,6 +312,7 @@ export default function App() {
               {currentTab === "analytics" && "Subscriber Metrics Analysis"}
               {currentTab === "event-logs" && "Event Logs & Triage"}
               {currentTab === "test" && "Test Panic Trigger"}
+              {currentTab === "vault" && "Secure Vault"}
               {currentTab === "security" && "Zero-Trust Administration Area"}
             </h2>
             <div className="w-1.5 h-1.5 rounded-full bg-[#00f59b] animate-pulse" />
@@ -377,11 +385,15 @@ export default function App() {
             />
           )}
 
-          {currentTab === "test" && (
-            <TestView users={users} />
-          )}
+              {currentTab === "test" && (
+                <TestView users={users} />
+              )}
 
-          {currentTab === "security" && config && (
+              {currentTab === "vault" && (
+                <VaultView />
+              )}
+
+              {currentTab === "security" && config && (
             <SettingsView
               admins={admins}
               config={config}
