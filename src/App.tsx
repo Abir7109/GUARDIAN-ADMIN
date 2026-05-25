@@ -89,6 +89,9 @@ export default function App() {
       });
       if (response.ok) {
         fetchState();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.error || "Failed to toggle protection — device may be unavailable.");
       }
     } catch (err) {
       console.error(err);
@@ -104,6 +107,9 @@ export default function App() {
       });
       if (response.ok) {
         fetchState();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.error || "Failed to update status — device may be unavailable.");
       }
     } catch (err) {
       console.error(err);
