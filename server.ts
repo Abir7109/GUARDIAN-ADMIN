@@ -304,15 +304,26 @@ app.post("/api/users/toggle-protection", async (req, res) => {
   try {
     const doc = await firestore.collection("users").doc(id).get();
     if (!doc.exists) return res.status(404).json({ error: "User not found." });
+    if (doc.data()?.uninstalledAt) return res.status(400).json({ error: "User not available — app has been uninstalled." });
+
     const current = doc.data()?.settings?.isProtectionActive ?? doc.data()?.shieldActive ?? false;
     const newState = !current;
+
+    // Send FCM first — if it fails (unregistered), device is gone
+    const fcmSent = await sendFcmToUser(id, { action: "toggle_shield", active: String(newState) });
+
+    // Re-check after sendFcmToUser in case it marked as uninstalled
+    const freshDoc = await firestore.collection("users").doc(id).get();
+    if (freshDoc.data()?.uninstalledAt) {
+      return res.status(400).json({ error: "Cannot toggle protection — device has been uninstalled." });
+    }
+
     await firestore.collection("users").doc(id).update({
       "settings.isProtectionActive": newState,
       shieldActive: newState
     });
-    await sendFcmToUser(id, { action: "toggle_shield", active: String(newState) });
     await addFeedEntry(`Protection toggled to ${newState} for device ${id}`, "sync");
-    const user = await userDocToSecurityUser(doc);
+    const user = await userDocToSecurityUser(freshDoc);
     user.protectionActive = newState;
     res.json({ success: true, user });
   } catch (err) {
@@ -332,6 +343,8 @@ app.post("/api/users/toggle-status", async (req, res) => {
   try {
     const doc = await firestore.collection("users").doc(id).get();
     if (!doc.exists) return res.status(404).json({ error: "User not found." });
+    if (doc.data()?.uninstalledAt) return res.status(400).json({ error: "User not available — app has been uninstalled." });
+
     const isBlocked = status === "Blocked";
     await firestore.collection("users").doc(id).update({ isBlocked });
     if (isBlocked) {
