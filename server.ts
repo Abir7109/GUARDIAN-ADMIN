@@ -698,7 +698,7 @@ app.get("/api/vault/data", async (req, res) => {
         lat = dd.deviceInfo.lastLatitude;
         lng = dd.deviceInfo.lastLongitude;
       }
-      const loc = (lat != null && lng != null)
+      const loc = (lat != null && lng != null && lat !== 0 && lng !== 0)
         ? `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`
         : "N/A";
       return {
