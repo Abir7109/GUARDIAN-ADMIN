@@ -151,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         policyPollJob = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 checkPolicyConfig()
-                delay(30000)
+                delay(10000)
             }
         }
     }
