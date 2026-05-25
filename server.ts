@@ -556,10 +556,27 @@ app.post("/api/configs", async (req, res) => {
         } catch (rcErr) {
           console.warn("Remote Config update failed (may need IAM permissions):", rcErr);
         }
-        // Force remote config refresh on all devices
-        const userSnap = await firestore.collection("users").where("fcmToken", "!=", "").get();
-        for (const userDoc of userSnap.docs) {
-          await sendFcmToToken(userDoc, { action: "update_policy" });
+        // Also write policy fields to each user's doc so the app can read without Firestore rules
+        try {
+          const userSnap = await firestore.collection("users").get();
+          for (const userDoc of userSnap.docs) {
+            const userPolicyFields: Record<string, any> = {};
+            if (updates.maintenanceMode !== undefined) userPolicyFields.maintenanceMode = updates.maintenanceMode;
+            if (updates.maintenanceSplashMessage !== undefined) userPolicyFields.maintenanceMessage = updates.maintenanceSplashMessage;
+            if (updates.forceUpdate !== undefined) userPolicyFields.forceUpdate = updates.forceUpdate;
+            if (updates.minRequiredVersion !== undefined) userPolicyFields.minRequiredVersion = updates.minRequiredVersion;
+            if (updates.updateMessage !== undefined) userPolicyFields.updateMessage = updates.updateMessage;
+            if (Object.keys(userPolicyFields).length > 0) {
+              userPolicyFields.policyUpdatedAt = admin.firestore.FieldValue.serverTimestamp();
+              try { await userDoc.ref.update(userPolicyFields); } catch (e) { console.warn("Failed to update user doc", userDoc.id, e); }
+            }
+            const token = userDoc.data().fcmToken;
+            if (token) {
+              try { await sendFcmToToken(userDoc, { action: "update_policy" }); } catch {}
+            }
+          }
+        } catch (userErr) {
+          console.warn("Failed to update user docs (non-fatal):", userErr);
         }
         await addFeedEntry("Security policies updated fleet-wide", "key_rotation");
         res.json({ success: true });

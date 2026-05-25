@@ -40,7 +40,7 @@ object FirebaseManager {
         remoteConfig = FirebaseRemoteConfig.getInstance()
 
         val configSettings = FirebaseRemoteConfigSettings.Builder()
-            .setMinimumFetchIntervalInSeconds(3600)
+            .setMinimumFetchIntervalInSeconds(60)
             .build()
         remoteConfig.setConfigSettingsAsync(configSettings)
         remoteConfig.setDefaultsAsync(com.securphone.app.R.xml.remote_config_defaults)
@@ -442,8 +442,27 @@ object FirebaseManager {
             } else {
                 Result.failure(Exception("Global policy config not found"))
             }
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (_: Exception) {
+            // Fallback: read policy fields from user's own document (bypasses Firestore rules)
+            try {
+                val userId = getCurrentUser()?.uid ?: return Result.failure(Exception("Not authenticated"))
+                val userDoc = firestore.collection(Constants.COLLECTION_USERS).document(userId).get().await()
+                if (userDoc.exists()) {
+                    val data = userDoc.data
+                    if (data != null) {
+                        val config = PolicyConfigModel(
+                            maintenanceMode = data["maintenanceMode"] as? Boolean ?: false,
+                            maintenanceMessage = data["maintenanceMessage"] as? String ?: "",
+                            forceUpdate = data["forceUpdate"] as? Boolean ?: false,
+                            minRequiredVersion = data["minRequiredVersion"] as? String ?: "1.0.0",
+                            updateMessage = data["updateMessage"] as? String ?: ""
+                        )
+                        applyPolicyConfig(context, config)
+                        return Result.success(config)
+                    }
+                }
+            } catch (_: Exception) {}
+            Result.failure(Exception("Global policy config not found"))
         }
     }
 

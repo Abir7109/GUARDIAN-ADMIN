@@ -3,6 +3,7 @@ package com.securphone.app.ui.main
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -57,12 +58,20 @@ class MainActivity : AppCompatActivity() {
         lastPolicyCheck = now
 
         CoroutineScope(Dispatchers.IO).launch {
+            Log.d("MainActivity", "checkPolicyConfig started")
             try {
-                FirebaseManager.fetchRemoteConfig()
-                FirebaseManager.getGlobalPolicyConfig(this@MainActivity)
-            } catch (_: Exception) {}
+                val rcResult = FirebaseManager.fetchRemoteConfig()
+                Log.d("MainActivity", "RemoteConfig fetch: $rcResult")
+                val fsResult = FirebaseManager.getGlobalPolicyConfig(this@MainActivity)
+                Log.d("MainActivity", "Firestore policy fetch: ${fsResult.isSuccess} mode=${PreferencesManager.isMaintenanceMode(this@MainActivity)}")
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Policy fetch failed", e)
+            }
             val ctx = this@MainActivity
-            if (PreferencesManager.isMaintenanceMode(ctx) || FirebaseManager.isMaintenanceMode()) {
+            val spMode = PreferencesManager.isMaintenanceMode(ctx)
+            val rcMode = FirebaseManager.isMaintenanceMode()
+            Log.d("MainActivity", "Maintenance check: SP=$spMode RC=$rcMode")
+            if (spMode || rcMode) {
                 val i = Intent(ctx, MaintenanceActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
@@ -99,6 +108,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("MainActivity", "onCreate called version=2")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
