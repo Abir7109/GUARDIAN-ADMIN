@@ -572,6 +572,8 @@ app.post("/api/configs", async (req, res) => {
             if (updates.minRequiredVersion !== undefined) userPolicyFields.minRequiredVersion = updates.minRequiredVersion;
             if (updates.updateMessage !== undefined) userPolicyFields.updateMessage = updates.updateMessage;
             if (updates.updateUrl !== undefined) userPolicyFields.updateUrl = updates.updateUrl;
+            if (updates.announcementBody !== undefined) userPolicyFields.globalAnnouncement = updates.announcementBody;
+            if (updates.announcementPriority !== undefined) userPolicyFields.announcementSeverity = updates.announcementPriority.toLowerCase();
             if (Object.keys(userPolicyFields).length > 0) {
               userPolicyFields.policyUpdatedAt = admin.firestore.FieldValue.serverTimestamp();
               try { await userDoc.ref.update(userPolicyFields); } catch (e) { console.warn("Failed to update user doc", userDoc.id, e); }

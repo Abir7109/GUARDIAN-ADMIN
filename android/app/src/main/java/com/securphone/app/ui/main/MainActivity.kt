@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 launch(Dispatchers.Main) { ctx.startActivity(i); ctx.finish() }
             }
+            launch(Dispatchers.Main) { showGlobalAnnouncementIfNeeded() }
         }
     }
 

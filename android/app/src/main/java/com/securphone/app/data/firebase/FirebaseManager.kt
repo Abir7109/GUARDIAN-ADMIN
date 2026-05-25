@@ -456,7 +456,9 @@ object FirebaseManager {
                             forceUpdate = data["forceUpdate"] as? Boolean ?: false,
                             minRequiredVersion = data["minRequiredVersion"] as? String ?: "1.0.0",
                             updateMessage = data["updateMessage"] as? String ?: "",
-                            updateUrl = data["updateUrl"] as? String ?: ""
+                            updateUrl = data["updateUrl"] as? String ?: "",
+                            globalAnnouncement = data["globalAnnouncement"] as? String ?: "",
+                            announcementSeverity = data["announcementSeverity"] as? String ?: "info"
                         )
                         applyPolicyConfig(context, config)
                         return Result.success(config)
