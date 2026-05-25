@@ -185,7 +185,7 @@ try {
 // ---------------------------------------------------------------------------
 // CORS middleware (allows Netlify frontend to call this backend)
 // ---------------------------------------------------------------------------
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "https://guardian-admin.netlify.app,http://localhost:5173,http://localhost:3000").split(",").map(s => s.trim());
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:3000").split(",").map(s => s.trim());
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -531,6 +531,13 @@ Format in polished Markdown with headings, bold indicators, and code blocks wher
       appType: "spa",
     });
     app.use(vite.middlewares);
+  } else {
+    // Production: serve built front-end from dist/
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
   }
 
   app.listen(PORT, "0.0.0.0", () => {
