@@ -168,14 +168,54 @@ class MainActivity : AppCompatActivity() {
         if (announcement == PreferencesManager.getLastShownAnnouncement(this)) return
         PreferencesManager.setLastShownAnnouncement(this, announcement)
         val severity = PreferencesManager.getAnnouncementSeverity(this)
+        val density = resources.displayMetrics.density
+        val dp24 = (24 * density).toInt()
+        val dp16 = (16 * density).toInt()
+        val iconSymbol = when (severity) {
+            "critical" -> "\u2757"
+            "warning" -> "\u26A0\uFE0F"
+            else -> "\u2139\uFE0F"
+        }
+        val bgColor = android.graphics.Color.parseColor(when (severity) {
+            "critical" -> "#CC1a1a2e"
+            "warning" -> "#CC3d2e00"
+            else -> "#CC0c0b18"
+        })
         val title = when (severity) {
-            "warning" -> "Warning"
-            "critical" -> "Critical Alert"
+            "critical" -> "CRITICAL ALERT"
+            "warning" -> "WARNING"
             else -> "Announcement"
         }
+        val iconTv = TextView(this).apply {
+            text = iconSymbol
+            textSize = 36f
+            gravity = android.view.Gravity.CENTER
+        }
+        val titleTv = TextView(this).apply {
+            text = title
+            setTextColor(android.graphics.Color.WHITE)
+            textSize = 18f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            gravity = android.view.Gravity.CENTER
+            setPadding(0, dp16, 0, 0)
+        }
+        val msgTv = TextView(this).apply {
+            text = announcement
+            setTextColor(android.graphics.Color.WHITE)
+            textSize = 14f
+            gravity = android.view.Gravity.CENTER
+            setPadding(dp24, dp16, dp24, 0)
+        }
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp24, dp24, dp24, dp24)
+            setBackgroundColor(bgColor)
+            addView(iconTv)
+            addView(titleTv)
+            addView(msgTv)
+        }
         AlertDialog.Builder(this, R.style.AlertDialogCustom)
-            .setTitle(title)
-            .setMessage(announcement)
+            .setView(container)
             .setPositiveButton("OK") { d, _ -> d.dismiss() }
             .show()
     }
