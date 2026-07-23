@@ -725,6 +725,63 @@ Format in polished Markdown with headings, bold indicators, and code blocks wher
 });
 
 // ---------------------------------------------------------------------------
+// SODA Stats — project stats endpoint for S.O.D.A. integration
+// ---------------------------------------------------------------------------
+const SODA_API_KEY = process.env.SODA_API_KEY || "";
+
+app.get("/api/soda-stats", async (req, res) => {
+  const auth = req.headers.authorization || "";
+  const token = auth.replace("Bearer ", "").trim();
+  if (!token || token !== SODA_API_KEY) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    let totalUsers = 0, activeUsers = 0, blockedUsers = 0, protectionActive = 0;
+    let recentEvents: any[] = [];
+    let maintenanceMode = false;
+    if (isFirebaseReady()) {
+      const [userSnap, eventSnap, policySnap] = await Promise.all([
+        firestore.collection("users").get(),
+        firestore.collection("events").orderBy("timestamp", "desc").limit(10).get(),
+        firestore.collection("policies").doc("global").get(),
+      ]);
+      for (const doc of userSnap.docs) {
+        const d = doc.data();
+        totalUsers++;
+        if (d.isBlocked) blockedUsers++;
+        const lastActive = d.lastActive?.toMillis?.() || d.lastActive || 0;
+        if (!d.isBlocked && !d.uninstalledAt && lastActive > Date.now() - 86400000) activeUsers++;
+        if (d.settings?.isProtectionActive || d.shieldActive) protectionActive++;
+      }
+      recentEvents = eventSnap.docs.map(d => {
+        const dd = d.data();
+        const ts = dd.timestamp?.toMillis?.() || dd.timestamp || Date.now();
+        return { id: d.id, type: dd.type || "unknown", details: dd.details || "", timestamp: new Date(ts).toISOString() };
+      });
+      maintenanceMode = !!policySnap.data()?.maintenanceMode;
+    } else {
+      totalUsers = memDb.users.length;
+      activeUsers = memDb.users.filter(u => u.status === "Active").length;
+      blockedUsers = memDb.users.filter(u => u.status === "Blocked").length;
+      protectionActive = memDb.users.filter(u => u.protectionActive).length;
+      maintenanceMode = memDb.config.maintenanceMode;
+    }
+    res.json({
+      project: "Guardian Anti-Thief",
+      status: maintenanceMode ? "maintenance" : "operational",
+      uptime: process.uptime(),
+      totalUsers,
+      activeUsers,
+      blockedUsers,
+      protectionActive,
+      recentEvents,
+    });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Vault — sensitive user data behind env-var PIN
 // ---------------------------------------------------------------------------
 const VAULT_PIN = process.env.VAULT_PIN || "0000";
