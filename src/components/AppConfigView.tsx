@@ -485,6 +485,31 @@ export default function AppConfigView({
 
           </div>
 
+          {/* Box 5: S.O.D.A. Integration */}
+          <div className="bg-[#0c0b18] border border-[#1e1c31] rounded-2xl p-6 flex flex-col gap-5 shadow-sm">
+            <div className="flex items-center gap-3 border-b border-[#1e1c31] pb-4">
+              <RefreshCw className="text-[#00fbfb] w-5.5 h-5.5 shrink-0" />
+              <h4 className="font-sans font-bold text-sm text-white">
+                S.O.D.A. Integration
+              </h4>
+            </div>
+            <div className="flex flex-col gap-3 text-xs font-sans">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-[#131127] border border-[#252243]">
+                <span className="text-[#8e8a9f] text-[10px] font-semibold uppercase tracking-wider">Status</span>
+                <span className="ml-auto text-[#00f59b] font-bold text-[11px]">Connected</span>
+              </div>
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-[#131127] border border-[#252243]">
+                <span className="text-[#8e8a9f] text-[10px] font-semibold uppercase tracking-wider">API Endpoint</span>
+                <span className="ml-auto text-white font-mono text-[11px]">/api/soda-stats</span>
+              </div>
+              <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-[#131127] border border-[#252243]">
+                <span className="text-[#8e8a9f] text-[10px] font-semibold uppercase tracking-wider">API Key</span>
+                <span className="text-[#00fbfb] font-mono text-[11px] break-all">sk-soda-...5yg</span>
+                <span className="text-[#8e8a9f] text-[9px]">Set via SODA_API_KEY env var</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>
