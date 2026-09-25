@@ -10,6 +10,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
@@ -794,7 +795,22 @@ app.post("/api/vault/verify", (req, res) => {
   return res.status(401).json({ verified: false, error: "Invalid vault PIN." });
 });
 
+function isVaultAuthorized(req: any): boolean {
+  const auth = String(req.headers.authorization || "");
+  const bearer = auth.replace(/^Bearer\s+/i, "").trim();
+  const headerPin = String(req.headers["x-vault-pin"] || "").trim();
+  const provided = bearer || headerPin;
+  if (!provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(VAULT_PIN);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
 app.get("/api/vault/data", async (req, res) => {
+  if (!isVaultAuthorized(req)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
   if (!isFirebaseReady()) {
     return res.json({
       users: memDb.users.map(u => ({

@@ -23,6 +23,7 @@ export default function VaultView() {
   const [revealedRows, setRevealedRows] = useState<Set<string>>(new Set());
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const vaultPinRef = useRef("");
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -67,8 +68,9 @@ export default function VaultView() {
       });
       const data = await res.json();
       if (data.verified) {
+        vaultPinRef.current = fullPin;
         setLocked(false);
-        fetchData();
+        fetchData(fullPin);
       } else {
         setError("Invalid vault PIN");
         setPin(["", "", "", ""]);
@@ -81,9 +83,18 @@ export default function VaultView() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = async (pinOverride?: string) => {
     try {
-      const res = await fetch("/api/vault/data");
+      const res = await fetch("/api/vault/data", {
+        headers: { Authorization: `Bearer ${pinOverride ?? vaultPinRef.current}` }
+      });
+      if (res.status === 401) {
+        vaultPinRef.current = "";
+        setLocked(true);
+        setPin(["", "", "", ""]);
+        setError("Vault session expired");
+        return;
+      }
       const data = await res.json();
       setUsers(data.users || []);
     } catch {
@@ -166,7 +177,7 @@ export default function VaultView() {
           <p className="text-xs text-[#8e8a9f] mt-1">Sensitive user credentials, locations & stored data</p>
         </div>
         <button
-          onClick={() => { setLocked(true); setPin(["", "", "", ""]); setRevealedRows(new Set()); }}
+          onClick={() => { setLocked(true); vaultPinRef.current = ""; setPin(["", "", "", ""]); setRevealedRows(new Set()); }}
           className="px-4 py-2 rounded-xl border border-[#fc2e5c]/20 bg-[#fc2e5c]/5 text-[#ff8ba4] hover:bg-[#fc2e5c]/15 text-xs font-semibold transition-all"
         >
           Lock Vault
