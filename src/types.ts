@@ -88,6 +88,8 @@ export interface SecurityUser {
   alarmActive?: boolean;
   lastLatitude?: number;
   lastLongitude?: number;
+  /** Epoch ms of the device's last heartbeat. Drives live/offline on the tracking map. */
+  lastActiveTs?: number;
 }
 
 export interface LiveFeedItem {

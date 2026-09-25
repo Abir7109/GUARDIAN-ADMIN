@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { SecurityUser } from "../types";
 import { Search, Download, Info, X, MapPin, Copy } from "lucide-react";
 
 import { Trash2, VolumeX } from "lucide-react";
+import TrackingMap from "./TrackingMap";
 
 interface UsersViewProps {
   users: SecurityUser[];
@@ -27,6 +28,26 @@ export default function UsersView({
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<'All' | 'Active' | 'Inactive' | 'Blocked'>('All');
   const [selectedUser, setSelectedUser] = useState<SecurityUser | null>(null);
+
+  // Row <-> map focus sharing
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const [panReq, setPanReq] = useState<{ id: string; n: number } | null>(null);
+  const panCounter = useRef(0);
+
+  const requestPan = (id: string) => {
+    panCounter.current += 1;
+    setPanReq({ id, n: panCounter.current });
+  };
+
+  // Called by a marker click: highlight the row, scroll it into view, centre the map.
+  const handleMapFocus = (id: string) => {
+    setFocusId(id);
+    requestPan(id);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document
+      .getElementById(`user-row-${id}`)
+      ?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  };
 
   // Compute stats
   const totalCount = users.length;
@@ -62,8 +83,15 @@ export default function UsersView({
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto animate-fade-in text-[#d9e3f5]">
-      
+    <div className="flex flex-col lg:flex-row items-start gap-6 w-full max-w-[1560px] mx-auto animate-fade-in text-[#d9e3f5]">
+
+      {/* ── Live map: right column on desktop, first block on mobile ── */}
+      <aside className="order-1 lg:order-2 w-full h-[440px] sm:h-[520px] lg:h-[calc(100vh-140px)] lg:w-[36%] lg:min-w-[360px] lg:max-w-[540px] shrink-0 lg:sticky lg:top-8 lg:self-start">
+        <TrackingMap users={users} focusId={focusId} panReq={panReq} onFocus={handleMapFocus} />
+      </aside>
+
+      {/* ── Users list + controls ── */}
+      <div className="order-2 lg:order-1 flex-1 min-w-0 flex flex-col gap-6">
       {/* Top action header card */}
       <section className="bg-[#141b25]/80 border border-[#2a3441] rounded-xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full md:w-auto relative text-left">
@@ -181,9 +209,20 @@ export default function UsersView({
               {filteredUsers.map((user) => {
                 const isActive = user.status === "Active";
                 const isBlocked = user.status === "Blocked";
+                const focused = user.id === focusId;
 
                 return (
-                  <tr key={user.id} className="hover:bg-[#1a232f]/40 transition-colors group">
+                  <tr
+                    key={user.id}
+                    id={`user-row-${user.id}`}
+                    onMouseEnter={() => setFocusId(user.id)}
+                    onMouseLeave={() => setFocusId(null)}
+                    onClick={() => requestPan(user.id)}
+                    title="Click to centre the tracking map on this device"
+                    className={`transition-colors group cursor-pointer ${
+                      focused ? "bg-[#00ff88]/10" : "hover:bg-[#1a232f]/40"
+                    }`}
+                  >
                     {/* User profile entry */}
                     <td className="py-4 pl-4 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-[#2a3441] border border-[#3b4b3d]/50 flex items-center justify-center font-mono text-xs font-bold text-[#b9cbb9] overflow-hidden select-none">
@@ -308,6 +347,7 @@ export default function UsersView({
           </table>
         </div>
       </section>
+      </div>
 
       {/* Detail drawer modal window */}
       {selectedUser && (

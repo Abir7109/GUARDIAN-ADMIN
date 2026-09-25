@@ -138,7 +138,8 @@ async function userDocToSecurityUser(doc: admin.firestore.DocumentSnapshot): Pro
     lastSync: uninstalled ? "N/A" : (lastSync ? diff(lastSync) : "Never"),
     alarmActive: !!d.alarmActive,
     lastLatitude: lat ?? undefined,
-    lastLongitude: lng ?? undefined
+    lastLongitude: lng ?? undefined,
+    lastActiveTs: lastActive || undefined
   };
 }
 
