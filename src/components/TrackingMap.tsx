@@ -85,7 +85,6 @@ export default function TrackingMap({ users, focusId, panReq, onFocus }: Trackin
 
     const map = L.map(el, {
       zoomControl: false,
-      attributionControl: false,
       minZoom: 2,
       maxZoom: 19,
       zoomSnap: 0.5,
