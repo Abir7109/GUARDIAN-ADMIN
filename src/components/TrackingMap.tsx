@@ -10,11 +10,11 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { SecurityUser } from "../types";
+import { CARTO_API_KEY, buildTileUrl, tileAttribution } from "../lib/mapTiles";
 
 const LIVE_WINDOW_MS = 15 * 60 * 1000;
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const TILE_ATTR =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+const TILE_URL = buildTileUrl(CARTO_API_KEY);
+const TILE_ATTR = tileAttribution(CARTO_API_KEY);
 const HOME: L.LatLngExpression = [23.8103, 90.4125];
 
 export function isLive(u: SecurityUser, now: number = Date.now()): boolean {
